@@ -61,3 +61,66 @@ function deposit(amount) {
     // 5️⃣ Message de confirmation
     console.log(`Dépôt de ${amount} ${account.currency} effectué avec succès.`);
 }
+
+
+
+/******************************************************
+ * Fonction : withdraw
+ * ----------------------------------------------------
+ * Permet de retirer de l'argent du compte
+ * - Vérifie que le montant est positif
+ * - Vérifie que le solde est suffisant
+ * - Met à jour le solde
+ * - Enregistre la transaction
+ ******************************************************/
+function withdraw(amount) {
+
+    // 1️⃣ Vérifier que le montant est valide
+    if (amount <= 0) {
+        console.log("Erreur : le montant du retrait doit être supérieur à 0.");
+        return;
+    }
+
+    // 2️⃣ Vérifier que le solde est suffisant
+    if (account.balance < amount) {
+        console.log("Erreur : solde insuffisant.");
+        return;
+    }
+
+    // 3️⃣ Soustraire le montant du solde
+    account.balance -= amount;
+
+    // 4️⃣ Créer la transaction
+    const transaction = {
+        id: Date.now(),
+        type: "withdraw",
+        amount: amount,
+        date: new Date()
+    };
+
+    // 5️⃣ Ajouter la transaction à l'historique
+    account.transactions.push(transaction);
+
+    // 6️⃣ Message de confirmation
+    console.log(`Retrait de ${amount} ${account.currency} effectué avec succès.`);
+}
+
+
+
+/******************************************************
+ *  Voir le solde
+ * ----------------------------------------------------
+ * Retourne le solde actuel du compte
+ ******************************************************/
+function getBalance() {
+    return account.balance;
+}
+
+/******************************************************
+ *  Voir l'historique des transactions
+ * ----------------------------------------------------
+ * Retourne le tableau complet des transactions
+ ******************************************************/
+function getTransactions() {
+    return account.transactions;
+}
