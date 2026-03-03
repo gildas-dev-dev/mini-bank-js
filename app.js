@@ -1,126 +1,180 @@
 /******************************************************
+ * MINI BANK - VERSION AMÉLIORÉE
+ * ----------------------------------------------------
+ * - Support multi-comptes
+ * - Fonctions découplées
+ * - Validation robuste
+ * - Simulation complète
+ ******************************************************/
+
+
+
+/******************************************************
  * 1️⃣ Création de l'utilisateur
- * ----------------------------------------------------
- * Représente le propriétaire du compte bancaire.
  ******************************************************/
-
 const user = {
-    id: 1, // Identifiant unique de l'utilisateur
-    firstName: "Gildas", // Prénom
-    lastName: "Mebada", // Nom
-    email: "gildas.mebada@email.com", // Email
-    isActive: true // Statut actif/inactif
+    id: 1,
+    firstName: "Gildas",
+    lastName: "Mebada",
+    email: "gildas.mebada@email.com",
+    isActive: true
 };
 
 
-/******************************************************
- * 2️⃣ Création du compte bancaire
- * ----------------------------------------------------
- * Chaque compte appartient à un utilisateur.
- * owner contient une référence vers l'objet user.
- ******************************************************/
-
-const account = {
-    accountNumber: "ACC-001", // Numéro du compte
-    balance: 0, // Solde initial (toujours 0 à la création)
-    currency: "XAF", // Devise du compte
-    owner: user, // Référence vers l'utilisateur (PAS une copie)
-    transactions: [] // Historique des transactions (vide au départ)
-};
-
 
 /******************************************************
- * Fonction : deposit
- * ----------------------------------------------------
- * Permet de déposer de l'argent sur le compte
- * - Vérifie que le montant est positif
- * - Met à jour le solde
- * - Enregistre la transaction
+ * 2️⃣ Création des comptes (multi-comptes)
  ******************************************************/
-function deposit(amount) {
-    // 1️⃣ Validation : le montant doit être positif
-    if (amount <= 0) {
-        console.log("Erreur : le montant du dépôt doit être supérieur à 0.");
-        return; // On arrête la fonction si montant invalide
+const accounts = [
+    {
+        accountNumber: "ACC-001",
+        balance: 0,
+        currency: "XAF",
+        owner: user,
+        transactions: []
+    },
+    {
+        accountNumber: "ACC-002",
+        balance: 100000,
+        currency: "XAF",
+        owner: user,
+        transactions: []
     }
+];
 
-    // 2️⃣ Ajouter le montant au solde du compte
-    account.balance += amount;
 
-    // 3️⃣ Créer l'objet transaction
-    const transaction = {
-        id: Date.now(),       // id unique basé sur le timestamp
-        type: "deposit",      // type de la transaction
-        amount: amount,       // montant du dépôt
-        date: new Date()      // date et heure actuelle
-    };
 
-    // 4️⃣ Ajouter la transaction au tableau du compte
-    account.transactions.push(transaction);
-
-    // 5️⃣ Message de confirmation
-    console.log(`Dépôt de ${amount} ${account.currency} effectué avec succès.`);
+/******************************************************
+ * 3️⃣ Fonction utilitaire : trouver un compte
+ ******************************************************/
+function findAccount(accountNumber) {
+    return accounts.find(account => account.accountNumber === accountNumber);
 }
 
 
 
 /******************************************************
- * Fonction : withdraw
- * ----------------------------------------------------
- * Permet de retirer de l'argent du compte
- * - Vérifie que le montant est positif
- * - Vérifie que le solde est suffisant
- * - Met à jour le solde
- * - Enregistre la transaction
+ * 4️⃣ Validation du montant
  ******************************************************/
-function withdraw(amount) {
+function isValidAmount(amount) {
+    return typeof amount === "number" && !isNaN(amount) && amount > 0;
+}
 
-    // 1️⃣ Vérifier que le montant est valide
-    if (amount <= 0) {
-        console.log("Erreur : le montant du retrait doit être supérieur à 0.");
+
+
+/******************************************************
+ * 5️⃣ Dépôt
+ ******************************************************/
+function deposit(accountNumber, amount) {
+
+    const account = findAccount(accountNumber);
+
+    if (!account) {
+        console.log("Erreur : compte introuvable.");
         return;
     }
 
-    // 2️⃣ Vérifier que le solde est suffisant
+    if (!isValidAmount(amount)) {
+        console.log("Erreur : montant invalide.");
+        return;
+    }
+
+    account.balance += amount;
+
+    const transaction = {
+        id: Date.now(),
+        type: "deposit",
+        amount,
+        date: new Date()
+    };
+
+    account.transactions.push(transaction);
+
+    console.log(`✅ Dépôt de ${amount} ${account.currency} effectué sur ${accountNumber}`);
+}
+
+
+
+/******************************************************
+ * 6️⃣ Retrait
+ ******************************************************/
+function withdraw(accountNumber, amount) {
+
+    const account = findAccount(accountNumber);
+
+    if (!account) {
+        console.log("Erreur : compte introuvable.");
+        return;
+    }
+
+    if (!isValidAmount(amount)) {
+        console.log("Erreur : montant invalide.");
+        return;
+    }
+
     if (account.balance < amount) {
         console.log("Erreur : solde insuffisant.");
         return;
     }
 
-    // 3️⃣ Soustraire le montant du solde
     account.balance -= amount;
 
-    // 4️⃣ Créer la transaction
     const transaction = {
         id: Date.now(),
         type: "withdraw",
-        amount: amount,
+        amount,
         date: new Date()
     };
 
-    // 5️⃣ Ajouter la transaction à l'historique
     account.transactions.push(transaction);
 
-    // 6️⃣ Message de confirmation
-    console.log(`Retrait de ${amount} ${account.currency} effectué avec succès.`);
+    console.log(`✅ Retrait de ${amount} ${account.currency} effectué sur ${accountNumber}`);
 }
 
 
 
 /******************************************************
- *  Voir le solde
- * ----------------------------------------------------
- * Retourne le solde actuel du compte
+ * 7️⃣ Voir le solde
  ******************************************************/
-function getBalance() {
+function getBalance(accountNumber) {
+    const account = findAccount(accountNumber);
+
+    if (!account) {
+        console.log("Erreur : compte introuvable.");
+        return;
+    }
+
     return account.balance;
 }
 
+
+
 /******************************************************
- *  Voir l'historique des transactions
- * ----------------------------------------------------
- * Retourne le tableau complet des transactions
+ * 8️⃣ Voir les transactions
  ******************************************************/
-function getTransactions() {
+function getTransactions(accountNumber) {
+    const account = findAccount(accountNumber);
+
+    if (!account) {
+        console.log("Erreur : compte introuvable.");
+        return;
+    }
+
     return account.transactions;
 }
+
+
+
+/******************************************************
+ * 9️⃣ SIMULATION
+ ******************************************************/
+
+deposit("ACC-001", 50000);
+withdraw("ACC-001", 10000);
+deposit("ACC-002", 25000);
+
+console.log("Solde ACC-001 :", getBalance("ACC-001"));
+console.log("Transactions ACC-001 :", getTransactions("ACC-001"));
+
+console.log("Solde ACC-002 :", getBalance("ACC-002"));
+console.log("Transactions ACC-002 :", getTransactions("ACC-002"));
